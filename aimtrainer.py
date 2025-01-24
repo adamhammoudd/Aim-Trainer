@@ -9,8 +9,8 @@ import sys
 import os
 pygame.init()
 
-# Path to the directory where the high_scores.json file will be stored
-high_scores_dir = os.path.join(os.path.expanduser("~"), "AimTrainer")
+# Path to the "High Scores" directory
+high_scores_dir = os.path.join(os.path.expanduser("~"), "High Scores")
 # Create the directory if it doesn't exist
 os.makedirs(high_scores_dir, exist_ok=True)
 # Path to the high_scores.json file in the specified directory
