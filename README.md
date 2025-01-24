@@ -1,4 +1,4 @@
-# Aim Trainer
+# 🎯 Aim Trainer
 
 This is a simple Aim Trainer game built with Python and Pygame. The project is designed to help players improve their mouse accuracy and reaction speed by clicking on growing and shrinking targets.  
 
