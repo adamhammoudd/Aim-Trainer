@@ -1,12 +1,16 @@
 # Description: A simple aim trainer game built using Pygame
-
 # Importing the necessary libraries
 import math
 import random
 import time
 import pygame
 import json
+import sys
+import os
 pygame.init()
+
+# Path to the high_scores.json file in the user's home directory
+high_scores_path = os.path.join(os.path.expanduser("~"), "high_scores.json")
 
 # Constants
 WIDTH, HEIGHT = 1200, 700 # The width and height of the window
@@ -249,7 +253,7 @@ def options_screen(win):
     # Continue Button
     continue_width, continue_height = 200, 50
     continue_x = WIDTH // 2 - continue_width // 2
-    continue_y = 300
+    continue_y = 250
     pygame.draw.rect(win, "white", (continue_x, continue_y, continue_width, continue_height))
     continue_text = LABEL_FONT.render("Continue", 1, BG_COLOR)
     win.blit(continue_text, (continue_x + continue_width // 2 - continue_text.get_width() // 2, 
@@ -258,24 +262,37 @@ def options_screen(win):
     # Restart Button
     restart_width, restart_height = 200, 50
     restart_x = WIDTH // 2 - restart_width // 2
-    restart_y = 450
-    pygame.draw.rect(win, "white", (restart_x, restart_y, restart_width, continue_height))
+    restart_y = 400
+    pygame.draw.rect(win, "white", (restart_x, restart_y, restart_width, restart_height))
     restart_text = LABEL_FONT.render("Restart", 1, BG_COLOR)
     win.blit(restart_text, (restart_x + restart_width // 2 - restart_text.get_width() // 2, 
                             restart_y + restart_height // 2 - restart_text.get_height() // 2))
+    
+    # Main Menu Button
+    main_width, main_height = 200, 50
+    main_x = WIDTH // 2 - main_width // 2
+    main_y = 550
+    pygame.draw.rect(win, "white", (main_x, main_y, main_width, main_height))
+    main_text = LABEL_FONT.render("Main Menu", 1, BG_COLOR)
+    win.blit(main_text, (main_x + main_width // 2 - main_text.get_width() // 2, 
+                            main_y + main_height // 2 - main_text.get_height() // 2))
 
-    # Event Handling
-    while True:
+    run_options = True
+    while run_options:
+        # Event Handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()   # Quit the game
-                exit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()   # Get the mouse position
                 if continue_x <= mouse_x <= continue_x + continue_width and continue_y <= mouse_y <= continue_y + continue_height:
                     return  # Continue the game
                 if restart_x <= mouse_x <= restart_x + restart_width and restart_y <= mouse_y <= restart_y + restart_height:
                     main()  # Restart the game
+                if main_x <= mouse_x <= main_x + main_width and main_y <= mouse_y <= main_y + main_height: 
+                    run_options = False
+                    start_game()
 
         pygame.display.update() # Update the display
 
@@ -307,7 +324,7 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
 
     # Calculate the accuracy
     if clicks == 0:
-        accuracy = 0 # Prevent division by zero
+            accuracy = 0 # Prevent division by zero
     else:
         accuracy = round(targets_pressed / clicks * 100, 1)
     accuracy_label = LABEL_FONT.render(f"Accuracy: {accuracy}%", 1, "white") # Render the accuracy
@@ -331,27 +348,29 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
             win.blit(LABEL_FONT.render("", 1, "white"), (850, 200 + (idx + 1) * 30)) # Render the ellipsis
             break
 
-    # Restart Button
-    restart_button_width, restart_button_height = 200, 50
-    restart_button_x = WIDTH // 2 - restart_button_width // 2
-    restart_button_y = 600
-    pygame.draw.rect(win, "white", (restart_button_x, restart_button_y, restart_button_width, restart_button_height)) # Draw the button
-    restart_button_text = LABEL_FONT.render("Restart", 1, BG_COLOR)
-    win.blit(restart_button_text, (restart_button_x + restart_button_width // 2 - restart_button_text.get_width() // 2, 
-                               restart_button_y + restart_button_height // 2 - restart_button_text.get_height() // 2)) # Position the button
+    # main Button
+    main_button_width, main_button_height = 200, 50
+    main_button_x = WIDTH // 2 - main_button_width // 2
+    main_button_y = 600
+    pygame.draw.rect(win, "white", (main_button_x, main_button_y, main_button_width, main_button_height)) # Draw the button
+    main_button_text = LABEL_FONT.render("Main Menu", 1, BG_COLOR)
+    win.blit(main_button_text, (main_button_x + main_button_width // 2 - main_button_text.get_width() // 2, 
+                               main_button_y + main_button_height // 2 - main_button_text.get_height() // 2)) # Position the button
 
     pygame.display.update() # Update the display
 
-    # Event Handling
-    run = True
-    while run:
+    run_end = True
+    while run_end:
+        # Event Handling
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
-                quit() # Quit the game
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.QUIT:  # Handle window close button
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:  # Handle mouse clicks
                 mouse_x, mouse_y = pygame.mouse.get_pos()
-                if restart_button_x <= mouse_x <= restart_button_x + restart_button_width and restart_button_y <= mouse_y <= restart_button_y + restart_button_height:
-                    home_screen(WIN, TARGET_INCREMENT)  # Go back to Home Screen
+                if main_button_x <= mouse_x <= main_button_x + main_button_width and main_button_y <= mouse_y <= main_button_y + main_button_height:
+                    run_end = False
+                    start_game()
 
 # Function to get the middle of the screen
 def get_middle(surface):
@@ -362,7 +381,7 @@ def load_high_scores():
     # Global variables
     global high_scores 
     try:
-        with open("high_scores.json", "r") as file:
+        with open(high_scores_path, "r") as file:
             high_scores = json.load(file) # Load the high scores from the file
             high_scores = {player: tuple(data) for player, data in high_scores.items()}
     except FileNotFoundError:
@@ -370,27 +389,29 @@ def load_high_scores():
 
 # Function to save high scores to a JSON file
 def save_high_scores():
-    with open("high_scores.json", "w") as file:
+    with open(high_scores_path, "w") as file:
         json.dump(high_scores, file) # Save the high scores to the file
 
 # Main function
 def main():
     # Global variables
-    run = True
+    load_high_scores()  # Load high scores at the start
+    run_main = True
     targets = []
     clock = pygame.time.Clock()
+    global run_end
+    global run_options
 
     # Reset the game variables
     targets_pressed = 0
     clicks = 0
     misses = 0
     start_time = time.time()
-    show_menu = False
 
     pygame.time.set_timer(TARGET_EVENT, TARGET_INCREMENT)
 
     # Game loop
-    while run:
+    while run_main:
         # Set the frame rate
         clock.tick(60)
         click = False
@@ -442,9 +463,11 @@ def main():
         load_high_scores() # Load the high scores
         pygame.display.update() # Update the display
 
-    pygame.quit() # Quit the game
 
 # Entry point
-if __name__ == "__main__":
-    home_screen(WIN, TARGET_INCREMENT) # Display the home screen
-    main() # Start the game
+def start_game():
+    if __name__ == "__main__":
+        home_screen(WIN, TARGET_INCREMENT) # Display the home screen
+        main() # Start the game
+
+start_game()
