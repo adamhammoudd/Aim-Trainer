@@ -9,18 +9,14 @@ import sys
 import os
 pygame.init()
 
-# Path to the "High Scores" directory
-high_scores_dir = os.path.join(os.path.expanduser("~"), "High Scores")
-# Create the directory if it doesn't exist
-os.makedirs(high_scores_dir, exist_ok=True)
-# Path to the high_scores.json file in the specified directory
-high_scores_path = os.path.join(high_scores_dir, "high_scores.json")
+# Path to the high_scores.json file in the user's home directory
+high_scores_path = os.path.join(os.path.expanduser("~"), "high_scores.json")
 
 # Constants
 WIDTH, HEIGHT = 1200, 700 # The width and height of the window
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT)) # Create the window
-pygame.display.set_caption("Aim Trainer") # Set the title of the window
+pygame.display.set_caption("🎯 Aim Trainer") # Set the title of the window
 
 TARGET_INCREMENT =  0 # The time interval between each target
 INCREMENT_LABEL = "" # The label for the target increment
@@ -34,6 +30,7 @@ TOP_BAR_HEIGHT = 50 # The height of the top bar
 
 LABEL_FONT = pygame.font.SysFont("comicsans", 24) # The font for labels
 TITLE_FONT = pygame.font.SysFont("comicsans", 48) # The font for titles
+H1_FONT = pygame.font.SysFont("comicsans", 36) # The font for headings
 
 # Global variables
 player_name = "" # The name of the player
@@ -301,13 +298,13 @@ def options_screen(win):
         pygame.display.update() # Update the display
 
 # Function to display the end screen
-def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_scores, difficulty):
+def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_scores, difficulty, high_scores_dic):
     # Global variables
     win.fill(BG_COLOR)
 
     # Update high score for the current player
-    if player_name in high_scores:
-        if clicks > high_scores[player_name][0]:
+    if player_name in high_scores_dic:
+        if clicks > high_scores_dic[player_name][0]:
             high_scores[player_name] = (clicks, difficulty) # Update the high score
     else:
         high_scores[player_name] = (clicks, difficulty) # Add the player to the high scores
@@ -343,7 +340,7 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
 
     # Render high scores
     high_scores_label = TITLE_FONT.render("High Scores", 1, "white")
-    sorted_scores = sorted(high_scores.items(), key=lambda x: x[1], reverse=True)  # Sort by score
+    sorted_scores = sorted(high_scores_dic.items(), key=lambda x: x[1], reverse=True)  # Sort by score
     win.blit(high_scores_label, (get_middle(title_label) + 350, 100))
     for idx, (player_name, (high_scores, difficulty)) in enumerate(sorted_scores):
         score_label = LABEL_FONT.render(f"{idx + 1}. {player_name} ({difficulty}): {high_scores}", 1, "white") # Render the high scores
@@ -352,7 +349,7 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
             win.blit(LABEL_FONT.render("", 1, "white"), (850, 200 + (idx + 1) * 30)) # Render the ellipsis
             break
 
-    # main Button
+    # Main Button
     main_button_width, main_button_height = 200, 50
     main_button_x = WIDTH // 2 - main_button_width // 2
     main_button_y = 600
@@ -360,6 +357,15 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
     main_button_text = LABEL_FONT.render("Main Menu", 1, BG_COLOR)
     win.blit(main_button_text, (main_button_x + main_button_width // 2 - main_button_text.get_width() // 2, 
                                main_button_y + main_button_height // 2 - main_button_text.get_height() // 2)) # Position the button
+    
+    # Reset High Score Button
+    reset_high_score_button_width, reset_high_score_button_height = 200, 50
+    reset_high_score_button_x = 850
+    reset_high_score_button_y = 600
+    pygame.draw.rect(win, "white", (reset_high_score_button_x, reset_high_score_button_y, reset_high_score_button_width, reset_high_score_button_height)) # Draw the button
+    reset_high_score_button_text = LABEL_FONT.render("Reset High Score", 1, BG_COLOR)
+    win.blit(reset_high_score_button_text, (reset_high_score_button_x + reset_high_score_button_width // 2 - reset_high_score_button_text.get_width() // 2, 
+                               reset_high_score_button_y + reset_high_score_button_height // 2 - reset_high_score_button_text.get_height() // 2)) # Position the button
 
     pygame.display.update() # Update the display
 
@@ -375,6 +381,50 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
                 if main_button_x <= mouse_x <= main_button_x + main_button_width and main_button_y <= mouse_y <= main_button_y + main_button_height:
                     run_end = False
                     start_game()
+
+                if reset_high_score_button_x <= mouse_x <= reset_high_score_button_x + reset_high_score_button_width and reset_high_score_button_y <= mouse_y <= reset_high_score_button_y + reset_high_score_button_height:
+                    win.fill(BG_COLOR)  # Clear the screen
+
+                    title_label = H1_FONT.render("Are you sure you want to reset your high scores?", 1, "white")
+                    win.blit(title_label, (get_middle(title_label), 150))
+
+                    # Yes Button
+                    yes_button_width, yes_button_height = 200, 50
+                    yes_button_x = 325
+                    yes_button_y = 400
+                    pygame.draw.rect(win, "white", (yes_button_x, yes_button_y, yes_button_width, yes_button_height)) # Draw the button
+                    yes_button_text = LABEL_FONT.render("Yes", 1, BG_COLOR)
+                    win.blit(yes_button_text, (yes_button_x + yes_button_width // 2 - yes_button_text.get_width() // 2, 
+                               yes_button_y + yes_button_height // 2 - yes_button_text.get_height() // 2)) # Position the button
+
+                    # No Button
+                    no_button_width, no_button_height = 200, 50
+                    no_button_x = 725
+                    no_button_y = 400
+                    pygame.draw.rect(win, "white", (no_button_x, no_button_y, no_button_width, no_button_height)) # Draw the button
+                    no_button_text = LABEL_FONT.render("No", 1, BG_COLOR)
+                    win.blit(no_button_text, (no_button_x + no_button_width // 2 - no_button_text.get_width() // 2, 
+                               no_button_y + no_button_height // 2 - no_button_text.get_height() // 2)) # Position the button
+                    pygame.display.update() # Update the display
+
+                    confirm_reset = True
+                    while confirm_reset:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:  # Handle window close button
+                                pygame.quit()
+                                exit()
+                            if event.type == pygame.MOUSEBUTTONDOWN:  # Handle mouse clicks
+                                mouse_x, mouse_y = pygame.mouse.get_pos()
+                                if yes_button_x <= mouse_x <= yes_button_x + yes_button_width and yes_button_y <= mouse_y <= yes_button_y + yes_button_height:
+                                    high_scores_dic.clear()  # Clear the high scores
+                                    save_high_scores()  # Save the empty high scores
+                                    confirm_reset = False
+                                    run_end = False
+                                    start_game()  # Restart the game
+
+                                if no_button_x <= mouse_x <= no_button_x + no_button_width and no_button_y <= mouse_y <= no_button_y + no_button_height:
+                                    confirm_reset = False
+                                    end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_scores, difficulty, high_scores_dic)  # Display the end screen
 
 # Function to get the middle of the screen
 def get_middle(surface):
@@ -460,7 +510,7 @@ def main():
 
         # Check if the player has lost
         if misses >= LIVES:
-            end_screen(WIN, elapsed_time, targets_pressed, clicks, player_name, high_scores, INCREMENT_LABEL) # Display the end screen
+            end_screen(WIN, elapsed_time, targets_pressed, clicks, player_name, high_scores, INCREMENT_LABEL, high_scores) # Display the end screen
 
         draw(WIN, targets) # Draw the game
         draw_top_bar(WIN, elapsed_time, targets_pressed, misses) # Draw the top bar
