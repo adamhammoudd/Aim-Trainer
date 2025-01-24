@@ -27,3 +27,6 @@ This is a simple Aim Trainer game built with Python and Pygame. The project is d
   Install Pygame by running:  
   ```bash
   pip install pygame
+
+## Credits
+- This project is from this [YouTube video](https://www.youtube.com/watch?v=NpmFbWO6HPU&t)
