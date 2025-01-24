@@ -9,8 +9,12 @@ import sys
 import os
 pygame.init()
 
-# Path to the high_scores.json file in the user's home directory
-high_scores_path = os.path.join(os.path.expanduser("~"), "high_scores.json")
+# Path to the directory where the high_scores.json file will be stored
+high_scores_dir = os.path.join(os.path.expanduser("~"), "AimTrainer")
+# Create the directory if it doesn't exist
+os.makedirs(high_scores_dir, exist_ok=True)
+# Path to the high_scores.json file in the specified directory
+high_scores_path = os.path.join(high_scores_dir, "high_scores.json")
 
 # Constants
 WIDTH, HEIGHT = 1200, 700 # The width and height of the window
