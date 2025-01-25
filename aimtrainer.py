@@ -16,7 +16,7 @@ high_scores_path = os.path.join(os.path.expanduser("~"), "high_scores.json")
 WIDTH, HEIGHT = 1200, 700 # The width and height of the window
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT)) # Create the window
-pygame.display.set_caption("🎯 Aim Trainer") # Set the title of the window
+pygame.display.set_caption("Aim Trainer 🎯") # Set the title of the window
 
 TARGET_INCREMENT =  0 # The time interval between each target
 INCREMENT_LABEL = "" # The label for the target increment
@@ -133,16 +133,34 @@ def home_screen(win, difficulty):
         title_label = TITLE_FONT.render("Aim Trainer", 1, "white")
         win.blit(title_label, (get_middle(title_label), 150))
 
+        # Start Button
+        start_button_width, start_button_height = 200, 50
+        start_button_x = WIDTH // 2 - start_button_width // 2
+        start_button_y = 300
+        pygame.draw.rect(win, "white", (start_button_x, start_button_y, start_button_width, start_button_height))
+        start_button_text = LABEL_FONT.render("Start", 1, BG_COLOR)
+        win.blit(start_button_text, (start_button_x + start_button_width // 2 - start_button_text.get_width() // 2, 
+                               start_button_y + start_button_height // 2 - start_button_text.get_height() // 2))
+       
         # Ask for player's name
         name_label = LABEL_FONT.render("Enter your name:", 1, "white")
         win.blit(name_label, (WIDTH // 2 - 100, 375))
 
         # Input Box
-        input_box = pygame.Rect(WIDTH // 2 - name_label.get_width() // 2, 425, 200, 40)
+        input_box_width, input_box_height = start_button_width, start_button_height
+        input_box_x = start_button_x
+        input_box_y = 425
+        input_box = pygame.Rect(input_box_x, input_box_y, input_box_width, input_box_height)
         pygame.draw.rect(win, "white", input_box, 2)
 
+        # Calculate the maximum number of characters that can fit in the input box
+        max_chars = input_box_width // LABEL_FONT.size('O')[0]
+
+        # Trim the user input if it exceeds the maximum number of characters
+        trimmed_user_input = user_input[:max_chars]
+
         # Render the user input
-        text_surface = LABEL_FONT.render(user_input, True, "white")
+        text_surface = LABEL_FONT.render(trimmed_user_input, True, "white")
         win.blit(text_surface, (input_box.x + 10, input_box.y + 5))
 
         # Difficulty Buttons
@@ -176,15 +194,6 @@ def home_screen(win, difficulty):
         win.blit(hard_label, (hard_button.x + button_width // 2 - hard_label.get_width() // 2, 
                               hard_button.y + button_height // 2 - hard_label.get_height() // 2))
 
-        # Start Button
-        start_button_width, start_button_height = 200, 50
-        start_button_x = WIDTH // 2 - start_button_width // 2
-        start_button_y = 300
-        pygame.draw.rect(win, "white", (start_button_x, start_button_y, start_button_width, start_button_height))
-        start_button_text = LABEL_FONT.render("Start", 1, BG_COLOR)
-        win.blit(start_button_text, (start_button_x + start_button_width // 2 - start_button_text.get_width() // 2, 
-                               start_button_y + start_button_height // 2 - start_button_text.get_height() // 2))
-        
         # Function to set the target increment based on the difficulty
         def set_target_increment(difficulty):
             global TARGET_INCREMENT
