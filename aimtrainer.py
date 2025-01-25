@@ -523,7 +523,6 @@ def main():
 
         draw(WIN, targets) # Draw the game
         draw_top_bar(WIN, elapsed_time, targets_pressed, misses) # Draw the top bar
-        load_high_scores() # Load the high scores
         pygame.display.update() # Update the display
 
 
