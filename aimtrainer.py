@@ -314,9 +314,9 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
     # Update high score for the current player
     if player_name in high_scores_dic:
         if clicks > high_scores_dic[player_name][0]:
-            high_scores[player_name] = (clicks, difficulty) # Update the high score
+            high_scores[player_name] = (clicks, difficulty)  # Update the high score
     else:
-        high_scores[player_name] = (clicks, difficulty) # Add the player to the high scores
+        high_scores[player_name] = (clicks, difficulty)  # Add the player to the high scores
 
     # Save the updated high scores
     save_high_scores()
@@ -325,19 +325,16 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
     title_label = TITLE_FONT.render("Game Over", 1, "white")
     stats_label = TITLE_FONT.render("Stats", 1, "white")
     time_label = LABEL_FONT.render(f"Time: {format_time(elapsed_time)}", 1, "white")
-    
+
     # Calculate the speed
-    speed = round(targets_pressed // elapsed_time, 1)
+    speed = round(targets_pressed / elapsed_time, 1) if elapsed_time > 0 else 0
     speed_label = LABEL_FONT.render(f"Speed: {speed} t/s", 1, "white")
-    
+
     hits_label = LABEL_FONT.render(f"Hits: {targets_pressed}", 1, "white")
 
     # Calculate the accuracy
-    if clicks == 0:
-            accuracy = 0 # Prevent division by zero
-    else:
-        accuracy = round(targets_pressed / clicks * 100, 1)
-    accuracy_label = LABEL_FONT.render(f"Accuracy: {accuracy}%", 1, "white") # Render the accuracy
+    accuracy = round(targets_pressed / clicks * 100, 1) if clicks > 0 else 0
+    accuracy_label = LABEL_FONT.render(f"Accuracy: {accuracy}%", 1, "white")
 
     # Render the labels
     win.blit(title_label, (get_middle(title_label), 50))
@@ -349,111 +346,76 @@ def end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_sco
 
     # Render high scores
     high_scores_label = TITLE_FONT.render("High Scores", 1, "white")
-    sorted_scores = sorted(high_scores_dic.items(), key=lambda x: x[1], reverse=True)  # Sort by score
     win.blit(high_scores_label, (get_middle(title_label) + 350, 100))
-    for idx, (player_name, (high_scores, difficulty)) in enumerate(sorted_scores):
-        score_label = LABEL_FONT.render(f"{idx + 1}. {player_name} ({difficulty}): {high_scores}", 1, "white") # Render the high scores
-        win.blit(score_label, (850, 200 + idx * 30)) # Position the high scores
-        if idx + 1 == 5:
-            win.blit(LABEL_FONT.render("", 1, "white"), (850, 200 + (idx + 1) * 30)) # Render the ellipsis
+
+    # Ensure all high scores are in the correct format
+    formatted_scores = []
+    for player, data in high_scores.items():
+        if isinstance(data, tuple) and len(data) == 2:
+            formatted_scores.append((player, data))
+        elif isinstance(data, (int, float)):  # Handle cases where the score is a single number
+            formatted_scores.append((player, (data, "unknown")))
+        elif isinstance(data, tuple) and len(data) == 1:  # Handle single-element tuples
+            formatted_scores.append((player, (data[0], "unknown")))
+
+    # Sort the scores
+    sorted_scores = sorted(formatted_scores, key=lambda x: x[1][0], reverse=True)
+
+    # Display the high scores
+    for idx, (player_name, (score, difficulty)) in enumerate(sorted_scores):
+        score_label = LABEL_FONT.render(f"{idx + 1}. {player_name} ({difficulty}): {score}", 1, "white")
+        win.blit(score_label, (850, 200 + idx * 30))
+        if idx + 1 == 5:  # Limit to top 5 scores
             break
 
     # Main Button
     main_button_width, main_button_height = 200, 50
     main_button_x = WIDTH // 2 - main_button_width // 2
     main_button_y = 600
-    pygame.draw.rect(win, "white", (main_button_x, main_button_y, main_button_width, main_button_height)) # Draw the button
+    pygame.draw.rect(win, "white", (main_button_x, main_button_y, main_button_width, main_button_height))
     main_button_text = LABEL_FONT.render("Main Menu", 1, BG_COLOR)
-    win.blit(main_button_text, (main_button_x + main_button_width // 2 - main_button_text.get_width() // 2, 
-                               main_button_y + main_button_height // 2 - main_button_text.get_height() // 2)) # Position the button
-    
-    # Reset High Score Button
-    reset_high_score_button_width, reset_high_score_button_height = 200, 50
-    reset_high_score_button_x = 850
-    reset_high_score_button_y = 600
-    pygame.draw.rect(win, "white", (reset_high_score_button_x, reset_high_score_button_y, reset_high_score_button_width, reset_high_score_button_height)) # Draw the button
-    reset_high_score_button_text = LABEL_FONT.render("Reset High Score", 1, BG_COLOR)
-    win.blit(reset_high_score_button_text, (reset_high_score_button_x + reset_high_score_button_width // 2 - reset_high_score_button_text.get_width() // 2, 
-                               reset_high_score_button_y + reset_high_score_button_height // 2 - reset_high_score_button_text.get_height() // 2)) # Position the button
+    win.blit(main_button_text, (main_button_x + main_button_width // 2 - main_button_text.get_width() // 2,
+                                 main_button_y + main_button_height // 2 - main_button_text.get_height() // 2))
 
-    pygame.display.update() # Update the display
+    pygame.display.update()
 
     run_end = True
     while run_end:
-        # Event Handling
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:  # Handle window close button
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:  # Handle mouse clicks
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if main_button_x <= mouse_x <= main_button_x + main_button_width and main_button_y <= mouse_y <= main_button_y + main_button_height:
                     run_end = False
                     start_game()
-
-                if reset_high_score_button_x <= mouse_x <= reset_high_score_button_x + reset_high_score_button_width and reset_high_score_button_y <= mouse_y <= reset_high_score_button_y + reset_high_score_button_height:
-                    win.fill(BG_COLOR)  # Clear the screen
-
-                    title_label = H1_FONT.render("Are you sure you want to reset your high scores?", 1, "white")
-                    win.blit(title_label, (get_middle(title_label), 150))
-
-                    # Yes Button
-                    yes_button_width, yes_button_height = 200, 50
-                    yes_button_x = 325
-                    yes_button_y = 400
-                    pygame.draw.rect(win, "white", (yes_button_x, yes_button_y, yes_button_width, yes_button_height)) # Draw the button
-                    yes_button_text = LABEL_FONT.render("Yes", 1, BG_COLOR)
-                    win.blit(yes_button_text, (yes_button_x + yes_button_width // 2 - yes_button_text.get_width() // 2, 
-                               yes_button_y + yes_button_height // 2 - yes_button_text.get_height() // 2)) # Position the button
-
-                    # No Button
-                    no_button_width, no_button_height = 200, 50
-                    no_button_x = 725
-                    no_button_y = 400
-                    pygame.draw.rect(win, "white", (no_button_x, no_button_y, no_button_width, no_button_height)) # Draw the button
-                    no_button_text = LABEL_FONT.render("No", 1, BG_COLOR)
-                    win.blit(no_button_text, (no_button_x + no_button_width // 2 - no_button_text.get_width() // 2, 
-                               no_button_y + no_button_height // 2 - no_button_text.get_height() // 2)) # Position the button
-                    pygame.display.update() # Update the display
-
-                    confirm_reset = True
-                    while confirm_reset:
-                        for event in pygame.event.get():
-                            if event.type == pygame.QUIT:  # Handle window close button
-                                pygame.quit()
-                                exit()
-                            if event.type == pygame.MOUSEBUTTONDOWN:  # Handle mouse clicks
-                                mouse_x, mouse_y = pygame.mouse.get_pos()
-                                if yes_button_x <= mouse_x <= yes_button_x + yes_button_width and yes_button_y <= mouse_y <= yes_button_y + yes_button_height:
-                                    high_scores_dic.clear()  # Clear the high scores
-                                    save_high_scores()  # Save the empty high scores
-                                    confirm_reset = False
-                                    run_end = False
-                                    start_game()  # Restart the game
-
-                                if no_button_x <= mouse_x <= no_button_x + no_button_width and no_button_y <= mouse_y <= no_button_y + no_button_height:
-                                    confirm_reset = False
-                                    end_screen(win, elapsed_time, targets_pressed, clicks, player_name, high_scores, difficulty, high_scores_dic)  # Display the end screen
-
+                    
 # Function to get the middle of the screen
 def get_middle(surface):
     return WIDTH / 2 - surface.get_width()/2 # Return the middle of the screen
 
 # Function to load high scores from a JSON file
 def load_high_scores():
-    # Global variables
-    global high_scores 
+    global high_scores
     try:
         with open(high_scores_path, "r") as file:
-            high_scores = json.load(file) # Load the high scores from the file
-            high_scores = {player: tuple(data) for player, data in high_scores.items()}
+            high_scores = json.load(file)  # Load the high scores from the file
+            # Ensure all values are tuples
+            high_scores = {player: (data if isinstance(data, (list, tuple)) else (data,)) for player, data in high_scores.items()}
     except FileNotFoundError:
-        high_scores = {} # Create an empty dictionary if the file does not exist
+        high_scores = {}  # Create an empty dictionary if the file does not exist
+    except json.JSONDecodeError:
+        high_scores = {}  # Handle corrupted JSON files
 
-# Function to save high scores to a JSON file
 def save_high_scores():
-    with open(high_scores_path, "w") as file:
-        json.dump(high_scores, file) # Save the high scores to the file
+    try:
+        os.makedirs(os.path.dirname(high_scores_path), exist_ok=True)
+        with open(high_scores_path, "w") as file:
+            json.dump(high_scores, file)
+        print(f"High scores saved to {high_scores_path}")
+    except Exception as e:
+        print(f"Error saving high scores: {e}")
 
 # Main function
 def main():
